@@ -153,12 +153,12 @@
 					alert("clicked");
 				});
 				document.querySelector("#test8-b").addEventListener("click", function(e) {
-					var event = new CustomEvent("click");
+					var event = new MouseEvent("click");
 					document.querySelector("#test8-a").dispatchEvent(event);
 				});
 			</script>
 
-			You can dispatch a custom-made event using dispatchEvent().
+			You can dispatch a custom-made mouse event using dispatchEvent().
 		</fieldset>
 
 	</body>
