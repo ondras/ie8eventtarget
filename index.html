@@ -5,7 +5,7 @@
 		<title>IE8 EventTarget polyfill test page</title>
 		<style>
 			div {
-				width: 200px;
+				min-width: 200px;
 				height: 100px;
 				border: 2px solid #333;
 				background-color: #efe;
@@ -13,6 +13,13 @@
 			div div {
 				height: 50%;
 				background-color: #fee;
+			}
+			fieldset {
+				margin-bottom: 2em;
+			}
+			fieldset > div {
+				float: left;
+				margin-right: 1em;
 			}
 		</style>
 		<script src="eventtarget.js"></script>
@@ -40,6 +47,8 @@
 					alert("clicked");
 				});
 			</script>
+
+			Listeners are added using a normal element.addEventListener(). Capturing is not possible.
 		</fieldset>
 
 		<fieldset>
@@ -50,6 +59,8 @@
 				document.querySelector("#test1").addEventListener("click", cb);
 				document.querySelector("#test1").removeEventListener("click", cb);
 			</script>
+
+			Listeners are removed using a normal element.removeEventListener(). Capturing is not possible.
 		</fieldset>
 
 		<fieldset>
@@ -61,6 +72,8 @@
 					LOG("#log3", e);
 				});
 			</script>
+
+			Event object is normalized by adding "timeStamp", "target", "currentTarget", "pageX", "pageY" and "relatedTarget".
 		</fieldset>
 
 		<fieldset>
@@ -76,6 +89,8 @@
 					e.stopPropagation();
 				});
 			</script>
+
+			Event object has stopPropagation().
 		</fieldset>
 
 		<fieldset>
@@ -87,6 +102,9 @@
 					e.preventDefault();
 				});
 			</script>
+			<p>
+			Event object has preventDefault().
+			</p>
 		</fieldset>
 
 		<fieldset>
@@ -100,6 +118,8 @@
 					LOG("#log6", e)
 				});
 			</script>
+
+			Event's "currentTarget" corresponds to the listener location. The "target" property is the event origin.
 		</fieldset>
 
 		<fieldset>
@@ -118,6 +138,8 @@
 					LOG("#log7-b", e);
 				});
 			</script>
+
+			Mouse over/out events have a "relatedTarget" property.
 		</fieldset>
 
 		<fieldset>
@@ -129,12 +151,12 @@
 					alert("clicked");
 				});
 				document.querySelector("#test8-b").addEventListener("click", function(e) {
-					var event = document.createEventObject();
-					alert(event.stopPropagation);
-					event.type = "click";
+					var event = new CustomEvent("click");
 					document.querySelector("#test8-a").dispatchEvent(event);
 				});
 			</script>
+
+			You can dispatch a custom-made event using dispatchEvent().
 		</fieldset>
 
 	</body>

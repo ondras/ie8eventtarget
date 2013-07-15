@@ -58,6 +58,7 @@ if (!document.addEventListener && window.Element && window.Event) {
 		},
 
 		dispatchEvent: function(event) {
+			event.srcElement = this;
 			return this.fireEvent("on" + event.type, event);
 		}
 	}
@@ -66,5 +67,27 @@ if (!document.addEventListener && window.Element && window.Event) {
 	while (todo.length) {
 		var parent = todo.pop();
 		for (var p in proto) { parent.prototype[p] = proto[p]; }
+	}
+}
+
+/** Bonus: CustomEvent polyfill to ease dispatchEvent usage */
+if (!window.CustomEvent) {
+	var CustomEvent = function(type, props) {
+		var event = document.createEventObject();
+		event.type = type;
+		return event;
+	}
+} else {
+	try {
+		new CustomEvent("test");
+	} catch (e) {
+		var CE = function(type, props) {
+			props = props || { bubbles: false, cancelable: false, detail: undefined };
+			var event = document.createEvent("CustomEvent");
+			event.initCustomEvent(type, props.bubbles, props.cancelable, props.detail);
+    		return event;
+		}
+		CE.prototype = CustomEvent.prototype;
+		CustomEvent = CE;
 	}
 }
