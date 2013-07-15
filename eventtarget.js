@@ -85,7 +85,7 @@ if (!window.CustomEvent) {
 			props = props || { bubbles: false, cancelable: false, detail: undefined };
 			var event = document.createEvent("CustomEvent");
 			event.initCustomEvent(type, props.bubbles, props.cancelable, props.detail);
-    		return event;
+			return event;
 		}
 		CE.prototype = CustomEvent.prototype;
 		CustomEvent = CE;
