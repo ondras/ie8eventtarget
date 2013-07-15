@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>IE8 EventTarget polyfill test page</title>
+		<style>
+			div {
+				width: 200px;
+				height: 100px;
+				border: 2px solid #333;
+				background-color: #efe;
+			}
+			div div {
+				height: 50%;
+				background-color: #fee;
+			}
+		</style>
+		<script src="eventtarget.js"></script>
+		<script>
+		var props = ["type", "timeStamp", "target", "currentTarget", "relatedTarget", "clientX", "clientY", "pageX", "pageY"]
+		var LOG = function(selector, data) {
+			var node = document.querySelector(selector);
+			node.innerHTML = "";
+			var arr = [];
+			for (var i=0;i<props.length;i++) {
+				var value = data[props[i]];
+				if (value && value.id) { value = "#"+value.id; }
+				arr.push(props[i] + ": " + value);
+			}
+			node.innerHTML = arr.join("<br/>");
+		}
+		</script>
+	</head>
+	<body>
+		<fieldset>
+			<legend>Test #1: normal listener</legend>
+			<div id="test1">click me</div>
+			<script>
+				document.querySelector("#test1").addEventListener("click", function(e) {
+					alert("clicked");
+				});
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #2: adding and removing</legend>
+			<div id="test2">click me</div>
+			<script>
+				var cb = function(e) { 	alert("clicked"); }
+				document.querySelector("#test1").addEventListener("click", cb);
+				document.querySelector("#test1").removeEventListener("click", cb);
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #3: event properties</legend>
+			<div id="test3">click me</div>
+			<pre id="log3"></pre>
+			<script>
+				document.querySelector("#test3").addEventListener("click", function(e) {
+					LOG("#log3", e);
+				});
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #4: stopping propagation</legend>
+			<div id="test4-a">click me
+				<div id="test4-b">click me too</div>
+			</div>
+			<script>
+				document.querySelector("#test4-a").addEventListener("click", function(e) {
+					alert("clicked");
+				});
+				document.querySelector("#test4-b").addEventListener("click", function(e) {
+					e.stopPropagation();
+				});
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #5: preventing default action</legend>
+			<a id="test5-a" href="#ohyes">click me, url shall change</a><br/>
+			<a id="test5-b" href="#ohnoez">click me, url shall not change</a>
+			<script>
+				document.querySelector("#test5-b").addEventListener("click", function(e) {
+					e.preventDefault();
+				});
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #6: target vs. currentTarget</legend>
+			<div id="test6-a">
+				<div id="test6-b">click me</div>
+			</div>
+			<pre id="log6"></pre>
+			<script>
+				document.querySelector("#test6-a").addEventListener("click", function(e) {
+					LOG("#log6", e)
+				});
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #7: relatedTarget</legend>
+			<div id="test7-a">
+				move here
+				<div id="test7-b">and here</div>
+			</div>
+			<pre id="log7-a"></pre>
+			<pre id="log7-b"></pre>
+			<script>
+				document.querySelector("#test7-a").addEventListener("mouseover", function(e) {
+					LOG("#log7-a", e);
+				});
+				document.querySelector("#test7-a").addEventListener("mouseout", function(e) {
+					LOG("#log7-b", e);
+				});
+			</script>
+		</fieldset>
+
+		<fieldset>
+			<legend>Test #8: dispatching</legend>
+			<div id="test8-a">click me</div>
+			<input id="test8-b" type="button" value="dispatch" />
+			<script>
+				document.querySelector("#test8-a").addEventListener("click", function(e) {
+					alert("clicked");
+				});
+				document.querySelector("#test8-b").addEventListener("click", function(e) {
+					var event = document.createEventObject();
+					alert(event.stopPropagation);
+					event.type = "click";
+					document.querySelector("#test8-a").dispatchEvent(event);
+				});
+			</script>
+		</fieldset>
+
+	</body>
+
+</html>
