@@ -112,7 +112,7 @@ if (!window.MouseEvent) {
 					relatedTarget: null
 				}
 				for (var p in props)   { def[p] = props[p];   }
-				var event = document.createEvent("MouseEvents");
+				var event = document.createEvent("MouseEvent");
 				event.initMouseEvent(
 					def.type, def.canBubble, def.cancelable, def.view, def.detail, def.screenX, def.screenY,
 					def.clientX, def.clientY, def.ctrlKey, def.altKey, def.shiftKey, def.metaKey, def.button, def.relatedTarget
