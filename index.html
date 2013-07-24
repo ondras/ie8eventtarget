@@ -24,7 +24,7 @@
 		</style>
 		<script src="eventtarget.js"></script>
 		<script>
-		var props = ["type", "timeStamp", "target", "currentTarget", "relatedTarget", "clientX", "clientY", "pageX", "pageY"]
+		var props = ["type", "timeStamp", "target", "currentTarget", "relatedTarget", "eventPhase", "clientX", "clientY", "pageX", "pageY"]
 		var LOG = function(selector, data) {
 			var node = document.querySelector(selector);
 			node.innerHTML = "";
@@ -50,7 +50,7 @@
 				});
 			</script>
 
-			Listeners are added using a normal element.addEventListener(). Capturing is not possible.
+			Listeners are added using a normal element.addEventListener().
 		</fieldset>
 
 		<fieldset>
@@ -62,7 +62,7 @@
 				document.querySelector("#test1").removeEventListener("click", cb);
 			</script>
 
-			Listeners are removed using a normal element.removeEventListener(). Capturing is not possible.
+			Listeners are removed using a normal element.removeEventListener().
 		</fieldset>
 
 		<fieldset>
@@ -75,7 +75,7 @@
 				});
 			</script>
 
-			Event object is normalized by adding "timeStamp", "target", "currentTarget", "pageX", "pageY" and "relatedTarget".
+			Event object is normalized by adding "timeStamp", "target", "currentTarget", "pageX", "pageY", "eventPhase" and "relatedTarget".
 		</fieldset>
 
 		<fieldset>
@@ -161,6 +161,23 @@
 			You can dispatch a custom-made mouse event using dispatchEvent().
 		</fieldset>
 
-	</body>
+		<fieldset>
+			<legend>Test #9: capture</legend>
+			<div id="test9-a">click me
+				<div id="test9-b">click me too</div>
+			</div>
 
+			<script>
+				var captureFunc = function(e) { alert(e.currentTarget.id + " capture"); }
+				var bubbleFunc = function(e) { alert(e.currentTarget.id + " bubble"); }
+				document.querySelector("#test9-a").addEventListener("click", captureFunc, true);
+				document.querySelector("#test9-a").addEventListener("click", bubbleFunc, false);
+				document.querySelector("#test9-b").addEventListener("click", captureFunc, true);
+				document.querySelector("#test9-b").addEventListener("click", bubbleFunc, false);
+			</script>
+
+			Event object has stopPropagation().
+		</fieldset>
+
+	</body>
 </html>

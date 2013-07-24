@@ -1,126 +1,209 @@
-/**
- * EventTarget support. Limitations (in IE8):
- *  - does not support capture
- *  - does not support window.dispatchEvent
- */
-if (!document.addEventListener && window.Element && window.Event) {
-	Event.prototype.stopPropagation = function() { this.cancelBubble = true; };
-	Event.prototype.preventDefault = function() { this.returnValue = false; };
+/** EventTarget support */
+(function() {
+	if (document.addEventListener || !window.Element || !window.Event) { return; }
 
-	(function() {
-		var proto = {
-			addEventListener: function(type, listener, useCapture) {
-				if (useCapture) { throw new Error("Unable to polyfill event capturing"); }
+	var expando = "__events"; /* own property for storing listeners */
+	var flag = "__immediateStopped"; /* own property for storing listeners */
 
-				if (!this.__events) { this.__events = []; }
+	Event.prototype.NONE = Event.NONE = 0;
+	Event.prototype.CAPTURING_PHASE = Event.CAPTURING_PHASE = 1;
+	Event.prototype.AT_TARGET = Event.AT_TARGET = 2;
+	Event.prototype.BUBBLING_PHASE = Event.BUBBLING_PHASE = 3;
 
-				for (var i=0;i<this.__events.length;i++) {
-					var item = this.__events[i];
-					if (item[0] == type && item[1] == listener) { return; }
-				}
+	Event.prototype.preventDefault = function() { this.returnValue = false; }
+	Event.prototype.stopPropagation = function() { this.cancelBubble = true; }
+	Event.prototype.stopImmediatePropagation = function() { this[flag] = this.cancelBubble = true; }
 
-				var elm = this;
-				var cb = function(e) {
-					e.timeStamp = +new Date();
-					e.target = e.srcElement;
-					e.currentTarget = elm;
-					e.pageX = e.clientX + document.documentElement.scrollLeft;
-					e.pageY = e.clientY + document.documentElement.scrollTop;
+	var decorate = function(e) { /* improve event properties */
+		e.timeStamp = +new Date();
+		if (!e.target) { e.target = e.srcElement; }
+		e.pageX = e.clientX + document.documentElement.scrollLeft;
+		e.pageY = e.clientY + document.documentElement.scrollTop;
 
-					if (e.type == "mouseover") { 
-						e.relatedTarget = e.fromElement; 
-					} else if (e.type == "mouseout") { 
-						e.relatedTarget = e.toElement; 
-					} else {
-						e.relatedTarget = null;
-					}
+		if (e.type == "mouseover") { 
+			e.relatedTarget = e.fromElement; 
+		} else if (e.type == "mouseout") { 
+			e.relatedTarget = e.toElement; 
+		} else {
+			e.relatedTarget = null;
+		}
+		return e;
+	}
 
-					if (typeof(listener) == "function") {
-						listener(e);
-					} else {
-						listener.handleEvent(e);
-					}
-				}
+	/**
+	 * @param {object[]} data
+	 * @param {function} listener
+	 * @param {bool} useCapture
+	 * @returns {number}
+	 */
+	var indexOf = function(data, listener, useCapture) { /* return an index of an existing listener */
+		for (var i=0;i<data.length;i++) {
+			var item = data[i];
+			if (item.useCapture == useCapture && item.listener == listener) { return i; }
+		}
+		return -1;
+	}
 
-				this.attachEvent("on"+type, cb);
-				this.__events.push([type, listener, cb]);
-			},
+	var fire = function(event, listener, currentTarget) {
+		event.currentTarget = currentTarget;
+		if (typeof(listener) == "function") {
+			listener.call(currentTarget, event);
+		} else {
+			listener.handleEvent(event);
+		}
+	}
 
-			removeEventListener: function(type, listener, useCapture) {
-				if (useCapture) { throw new Error("Unable to polyfill event capturing"); }
+	var getAncestors = function(node) {
+		var result = [];
+		while (node.parentNode) {
+			result.unshift(node.parentNode);
+			node = node.parentNode;
+		}
+		return result;
+	}
 
-				var index = -1;
-				var events = this.__events || [];
-				for (var i=0;i<events.length;i++) {
-					var item = events[i];
-					if (item[0] == type && item[1] == listener) { 
-						index = i;
-						break;
-					}
-				}
+	/**
+	 * Run listeners on a nodelist
+	 * @param {Event} event
+	 * @param {node[]} nodes
+	 * @param {number} phase
+	 * @returns {bool} terminated?
+	 */
+	var runListeners = function(event, nodes, phase) {
+		event.eventPhase = phase;
+		for (var i=0;i<nodes.length;i++) {
+			var node = nodes[i];
+			var listeners = [];
+			var data = (node[expando] || {})[event.type] || [];
 
-				var cb = events.splice(i, 1)[0][2];
-				this.detachEvent("on"+type, cb);
-			},
-
-			dispatchEvent: function(event) {
-				event.srcElement = this;
-				return this.fireEvent("on" + event.type, event);
+			for (var j=0;j<data.length;j++) { /* get list of relevant listeners */
+				var item = data[j];
+				if (item.useCapture && phase == Event.BUBBLING_PHASE) { continue; }
+				if (!item.useCapture && phase == Event.CAPTURING_PHASE) { continue; }
+				listeners.push(item.listener);
 			}
+
+			for (var j=0;j<listeners.length;j++) {
+				var listener = listeners[j];
+				try {
+					fire(event, listener, node);
+				} catch (e) {
+					setTimeout(function() { throw e; }, 0);
+				}
+				if (event[flag]) { return true; } /* stopped immediate propagation */
+			}
+
+			if (event.cancelBubble) { return true; } /* stopped propagation */
 		}
 
-		var todo = [Element, window.constructor, document.constructor];
-		while (todo.length) {
-			var parent = todo.pop();
-			for (var p in proto) { parent.prototype[p] = proto[p]; }
+		return false; /* propagation not stopped */
+	}
+
+	/**
+	 * The "real" event handler/processor
+	 * @param {Event} event
+	 * @returns {boolean} Not cancelled?
+	 */
+	var handler = function(event) {
+		decorate(event);
+
+		var ancestors = getAncestors(event.target);
+
+		if (ancestors.length) { /* capture */
+			if (runListeners(event, ancestors, Event.CAPTURING_PHASE)) { return false; }
 		}
-	})();
-}
+
+		/* at target */
+		if (runListeners(event, [event.target], Event.AT_TARGET)) { return false; }
+
+		if (ancestors.length) { /* bubble */
+			ancestors.reverse();
+			if (runListeners(event, ancestors, Event.BUBBLING_PHASE)) { return false; }
+		}
+
+		event.stopPropagation(); /* do not process natively */
+		return true;
+	}
+
+	var proto = {
+		addEventListener: function(type, listener, useCapture) {
+			var data = (this[expando] || {})[type] || [];
+			if (indexOf(data, listener, useCapture) > -1) { return; } /* already added */
+
+			if (!(expando in this)) { this[expando] = {}; }
+			if (!(type in this[expando])) { this[expando][type] = []; }
+			this[expando][type].push({listener:listener, useCapture:useCapture});
+
+			if (!data.length) { this.attachEvent("on"+type, handler); } /* first: add native listener */
+		},
+
+		removeEventListener: function(type, listener, useCapture) {
+			var data = (this[expando] || {})[type] || [];
+			var index = indexOf(data, listener, useCapture);
+			if (index == -1) { return; } /* not present */
+
+			data.splice(index, 1);
+			if (!data.length) { this.detachEvent("on"+type, handler); } /* last: remove native listener */
+		},
+
+		dispatchEvent: function(event) {
+			event.target = this; /* srcElement not writable */
+			return handler(event);
+		}
+	}
+
+	var todo = [Element, window.constructor, document.constructor];
+	while (todo.length) {
+		var parent = todo.pop();
+		for (var p in proto) { parent.prototype[p] = proto[p]; }
+	}
+})();
 
 /** Bonus: MouseEvent polyfill to ease dispatchEvent usage */
-if (!window.MouseEvent) {
-	var MouseEvent = function(type, props) {
-		var def = {
-			type: type	
+(function() {
+	if (!window.MouseEvent) {
+		window.MouseEvent = function(type, props) {
+			var def = {
+				type: type	
+			}
+			var event = document.createEventObject();
+			for (var p in def)   { event[p] = def[p];   }
+			for (var p in props) { event[p] = props[p]; }
+			return event;
 		}
-		var event = document.createEventObject();
-		for (var p in def)   { event[p] = def[p];   }
-		for (var p in props) { event[p] = props[p]; }
-		return event;
+		return;
 	}
-} else {
+
 	try {
 		new MouseEvent("click");
 	} catch (e) {
-		(function() {
-			var MouseEvent = function(type, props) {
-				var def = {
-					type: type,
-					canBubble: true,
-					cancelable: true,
-					view: window,
-					detail: 1,
-					screenX: 0,
-					screenY: 0,
-					clientX: 0,
-					clientY: 0,
-					ctrlKey: false,
-					altLey: false,
-					shiftKey: false,
-					metaKey: false,
-					button: 0,
-					relatedTarget: null
-				}
-				for (var p in props)   { def[p] = props[p];   }
-				var event = document.createEvent("MouseEvent");
-				event.initMouseEvent(
-					def.type, def.canBubble, def.cancelable, def.view, def.detail, def.screenX, def.screenY,
-					def.clientX, def.clientY, def.ctrlKey, def.altKey, def.shiftKey, def.metaKey, def.button, def.relatedTarget
-				);
-				return event;
+		var MouseEvent = function(type, props) {
+			var def = {
+				type: type,
+				canBubble: true,
+				cancelable: true,
+				view: window,
+				detail: 1,
+				screenX: 0,
+				screenY: 0,
+				clientX: 0,
+				clientY: 0,
+				ctrlKey: false,
+				altLey: false,
+				shiftKey: false,
+				metaKey: false,
+				button: 0,
+				relatedTarget: null
 			}
-			MouseEvent.prototype = window.MouseEvent.prototype;
-			window.MouseEvent = MouseEvent;
-		})();
+			for (var p in props)   { def[p] = props[p];   }
+			var event = document.createEvent("MouseEvent");
+			event.initMouseEvent(
+				def.type, def.canBubble, def.cancelable, def.view, def.detail, def.screenX, def.screenY,
+				def.clientX, def.clientY, def.ctrlKey, def.altKey, def.shiftKey, def.metaKey, def.button, def.relatedTarget
+			);
+			return event;
+		}
+		MouseEvent.prototype = window.MouseEvent.prototype;
+		window.MouseEvent = MouseEvent;
 	}
-}
+})();
