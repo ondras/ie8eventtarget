@@ -183,7 +183,7 @@
 		var ME = function(type, props) {
 			var def = {
 				type: type,
-				canBubble: false,
+				bubbles: false,
 				cancelable: false,
 				view: window,
 				detail: 1,
@@ -201,7 +201,7 @@
 			for (var p in props)   { def[p] = props[p];   }
 			var event = document.createEvent("MouseEvent");
 			event.initMouseEvent(
-				def.type, def.canBubble, def.cancelable, def.view, def.detail, def.screenX, def.screenY,
+				def.type, def.bubbles, def.cancelable, def.view, def.detail, def.screenX, def.screenY,
 				def.clientX, def.clientY, def.ctrlKey, def.altKey, def.shiftKey, def.metaKey, def.button, def.relatedTarget
 			);
 			return event;
