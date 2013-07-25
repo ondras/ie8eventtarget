@@ -144,7 +144,7 @@ describe("EventTarget", function() {
 	describe("Exceptions", function() {
 		it("should continue calling listeners after exception", function() {
 			add(a, loga);
-//			add(a, function() { throw new Error(123); });
+			add(a, function() { throw new Error(123); });
 			add(a, logb);
 			click(a);
 			expect(LOG).toEqual(["a", "b"]);
