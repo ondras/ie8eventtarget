@@ -3,14 +3,14 @@
 	if (document.addEventListener || !window.Element || !window.Event) { return; }
 
 	var expando = "__events"; /* own property for storing listeners */
-	var flag = "__immediateStopped"; /* own property for storing listeners */
+	var flag = "__immediateStopped"; /* stopImmediatePropagation flag */
 
 	Event.prototype.NONE = Event.NONE = 0;
 	Event.prototype.CAPTURING_PHASE = Event.CAPTURING_PHASE = 1;
 	Event.prototype.AT_TARGET = Event.AT_TARGET = 2;
 	Event.prototype.BUBBLING_PHASE = Event.BUBBLING_PHASE = 3;
 
-	Event.prototype.preventDefault = function() { this.returnValue = false; }
+	Event.prototype.preventDefault = function() { if (this.cancelable !== false) { this.returnValue = false; } }
 	Event.prototype.stopPropagation = function() { this.cancelBubble = true; }
 	Event.prototype.stopImmediatePropagation = function() { this[flag] = this.cancelBubble = true; }
 
@@ -110,19 +110,19 @@
 		var ancestors = getAncestors(event.target);
 
 		if (ancestors.length) { /* capture */
-			if (runListeners(event, ancestors, Event.CAPTURING_PHASE)) { return false; }
+			if (runListeners(event, ancestors, Event.CAPTURING_PHASE)) { return event.returnValue; }
 		}
 
 		/* at target */
-		if (runListeners(event, [event.target], Event.AT_TARGET)) { return false; }
+		if (runListeners(event, [event.target], Event.AT_TARGET)) { return event.returnValue; }
 
-		if (ancestors.length) { /* bubble */
+		if (ancestors.length && event.bubbles) { /* bubble */
 			ancestors.reverse();
-			if (runListeners(event, ancestors, Event.BUBBLING_PHASE)) { return false; }
+			if (runListeners(event, ancestors, Event.BUBBLING_PHASE)) { return event.returnValue; }
 		}
 
 		event.stopPropagation(); /* do not process natively */
-		return true;
+		return event.returnValue;
 	}
 
 	var proto = {
@@ -148,6 +148,7 @@
 
 		dispatchEvent: function(event) {
 			event.target = this; /* srcElement not writable */
+			event.returnValue = true;
 			return handler(event);
 		}
 	}
@@ -164,7 +165,9 @@
 	if (!window.MouseEvent) {
 		window.MouseEvent = function(type, props) {
 			var def = {
-				type: type	
+				type: type,
+				cancelable: false,
+				bubbles: false
 			}
 			var event = document.createEventObject();
 			for (var p in def)   { event[p] = def[p];   }
@@ -177,11 +180,11 @@
 	try {
 		new MouseEvent("click");
 	} catch (e) {
-		var MouseEvent = function(type, props) {
+		var ME = function(type, props) {
 			var def = {
 				type: type,
-				canBubble: true,
-				cancelable: true,
+				canBubble: false,
+				cancelable: false,
 				view: window,
 				detail: 1,
 				screenX: 0,
@@ -203,7 +206,7 @@
 			);
 			return event;
 		}
-		MouseEvent.prototype = window.MouseEvent.prototype;
-		window.MouseEvent = MouseEvent;
+		ME.prototype = window.MouseEvent.prototype;
+		window.MouseEvent = ME;
 	}
 })();
