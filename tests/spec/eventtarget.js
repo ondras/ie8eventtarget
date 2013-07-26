@@ -284,6 +284,17 @@ describe("EventTarget", function() {
 			expect(LOG).toEqual(["win"]);
 		});
 
+		it("should call listeners with a proper type", function() {
+			add(c, logc);
+
+			click(c);
+			var e = new MouseEvent("mousedown");
+			c.dispatchEvent(e);
+			click(c);
+
+			expect(LOG).toEqual(["c", "c"]);
+		});
+
 		it("should return true for non-canceled events", function() {
 			add(a, loga);
 			var result = click(a, true);

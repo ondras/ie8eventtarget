@@ -2,6 +2,7 @@
 (function() {
 	if (!window.MouseEvent) {
 		window.MouseEvent = function(type, props) {
+			if (!arguments.length) { throw new Error("Not enough arguments"); }
 			var def = {
 				type: type,
 				cancelable: false,
@@ -19,6 +20,7 @@
 		new MouseEvent("click");
 	} catch (e) {
 		var ME = function(type, props) {
+			if (!arguments.length) { throw new Error("Not enough arguments"); }
 			var def = {
 				type: type,
 				bubbles: false,

@@ -2,6 +2,7 @@
 (function() {
 	if (!window.CustomEvent) {
 		window.CustomEvent = function(type, props) {
+			if (!arguments.length) { throw new Error("Not enough arguments"); }
 			var def = {
 				type: type,
 				bubbles: false,
@@ -20,6 +21,7 @@
 		new CustomEvent("test");
 	} catch (e) {
 		var CE = function (type, props) {
+			if (!arguments.length) { throw new Error("Not enough arguments"); }
 			var def = {
 				bubbles: false,
 				cancelable: false,
@@ -27,7 +29,7 @@
 			};
 			for (var p in props)   { def[p] = props[p];   }
 			var event = document.createEvent("CustomEvent");
-			event.initCustomEvent(type, props.bubbles, props.cancelable, props.detail);
+			event.initCustomEvent(type, def.bubbles, def.cancelable, def.detail);
 			return event;
 		};
 		
