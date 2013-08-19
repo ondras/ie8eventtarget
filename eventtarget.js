@@ -116,7 +116,6 @@
 		decorate(event);
 
 		var ancestors = getAncestors(event.target);
-
 		if (ancestors.length) { /* capture */
 			if (runListeners(event, ancestors, Event.CAPTURING_PHASE)) { return event.returnValue; }
 		}
@@ -124,7 +123,7 @@
 		/* at target */
 		if (runListeners(event, [event.target], Event.AT_TARGET)) { return event.returnValue; }
 
-		if (ancestors.length && event.bubbles) { /* bubble */
+		if (ancestors.length && event.bubbles !== false) { /* bubble */
 			ancestors.reverse();
 			if (runListeners(event, ancestors, Event.BUBBLING_PHASE)) { return event.returnValue; }
 		}
