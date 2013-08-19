@@ -83,14 +83,18 @@
 				listeners.push(item.listener);
 			}
 
-			for (var j=0;j<listeners.length;j++) {
-				var listener = listeners[j];
+			/* trick: use try-catch to gracefully handle failing listeners, but do not use it abundantly */
+			j=0;
+			while (j < listeners.length) {
 				try {
-					fire(event, listener, node);
+					while (j < listeners.length) {
+						var listener = listeners[j++];
+						fire(event, listener, node);
+						if (event[flag]) { return true; } /* stopped immediate propagation */
+					}
 				} catch (e) {
 					setTimeout(function() { throw e; }, 0);
 				}
-				if (event[flag]) { return true; } /* stopped immediate propagation */
 			}
 
 			if (event.cancelBubble) { return true; } /* stopped propagation */

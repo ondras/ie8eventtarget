@@ -1,13 +1,17 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>Jasmine Test Runner</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link rel="stylesheet" type="text/css" href="lib/jasmine.css" />
-	<script type="text/javascript" src="lib/jasmine.js"></script>
-	<script type="text/javascript" src="lib/jasmine-html.js"></script>
- 
- 
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Jasmine Spec Runner v2.0.0-rc2</title>
+
+	<link rel="shortcut icon" type="image/png" href="lib/jasmine-2.0.0-rc2/jasmine_favicon.png">
+	<link rel="stylesheet" type="text/css" href="lib/jasmine-2.0.0-rc2/jasmine.css">
+
+	<script type="text/javascript" src="lib/jasmine-2.0.0-rc2/jasmine.js"></script>
+	<script type="text/javascript" src="lib/jasmine-2.0.0-rc2/jasmine-html.js"></script>
+	<script type="text/javascript" src="lib/jasmine-2.0.0-rc2/boot.js"></script>
+
+
 	<script type="text/javascript" src="../eventtarget.js"></script>
 	<script type="text/javascript" src="../mouseevent.js"></script>
 	<script type="text/javascript" src="../customevent.js"></script>
@@ -15,38 +19,8 @@
 	<script type="text/javascript" src="spec/eventtarget.js"></script>
 	<script type="text/javascript" src="spec/mouseevent.js"></script>
 	<script type="text/javascript" src="spec/customevent.js"></script>
-
 </head>
+
 <body>
-
-	<script type="text/javascript">
-		(function() {
-			var jasmineEnv = jasmine.getEnv();
-			jasmineEnv.updateInterval = 1000;
-
-			var htmlReporter = new jasmine.HtmlReporter();
-
-			jasmineEnv.addReporter(htmlReporter);
-
-			jasmineEnv.specFilter = function(spec) {
-				return htmlReporter.specFilter(spec);
-			};
-
-			var currentWindowOnload = window.onload;
-
-			window.onload = function() {
-				if (currentWindowOnload) {
-					currentWindowOnload();
-				}
-				execJasmine();
-			};
-
-			function execJasmine() {
-				jasmineEnv.execute();
-			}
-
-		})();
-	</script>
-
 </body>
 </html>
