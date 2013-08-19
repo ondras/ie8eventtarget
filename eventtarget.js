@@ -17,6 +17,10 @@
 	var decorate = function(e) { /* improve event properties */
 		e.timeStamp = +new Date();
 		if (!e.target) { e.target = e.srcElement; }
+		if (!e.target) {
+			if (e.type == "load") { e.target = window; }
+			if (e.type == "readystatechange") { e.target = document; }
+		}
 		e.pageX = e.clientX + document.documentElement.scrollLeft;
 		e.pageY = e.clientY + document.documentElement.scrollTop;
 

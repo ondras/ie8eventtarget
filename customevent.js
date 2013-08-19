@@ -14,6 +14,7 @@
 			for (var p in props) { event[p] = props[p]; }
 			return event;
 		}
+
 		return;
 	}
 
