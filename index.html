@@ -180,5 +180,29 @@
 			Event object has stopPropagation().
 		</fieldset>
 
+		<fieldset>
+			<legend>Test #10: onchange</legend>
+			<div id="test10-a">click me</div>
+			<select id="test10-b">
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+			</select>
+
+			<script>
+				document.querySelector("#test10-b").addEventListener("change", function() {
+					alert("change");
+				});
+
+				document.querySelector("#test10-a").addEventListener("click", function() {
+					var select = document.querySelector("#test10-b");
+					select.selectedIndex = (select.selectedIndex+1) % select.options.length;
+					var change = new MouseEvent("change");
+					select.dispatchEvent(change);
+				});
+			</script>
+
+			You can dispatch "change" as a MouseEvent.
+		</fieldset>
 	</body>
 </html>
