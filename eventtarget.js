@@ -18,9 +18,9 @@
 		e.timeStamp = +new Date();
 		if (!e.target) { e.target = e.srcElement; }
 		if (!e.target) {
-			if (e.type == "load") { e.target = window; }
 			if (e.type == "readystatechange") { e.target = document; }
-			if (e.type == "message") { e.target = window; }
+			if (e.type == "load" || e.type == "message" || e.type == "hashchange" || e.type == "resize") { e.target = window; }
+			if (!e.target) { alert("Event '" + e.type + "' does not have any suitable target. Screw that!"); }
 		}
 		e.pageX = e.clientX + document.documentElement.scrollLeft;
 		e.pageY = e.clientY + document.documentElement.scrollTop;
