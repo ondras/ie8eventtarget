@@ -1,5 +1,5 @@
 /** CustomEvent polyfill */
-(function() {
+;(function() {
 	if (!window.CustomEvent) {
 		window.CustomEvent = function(type, props) {
 			if (!arguments.length) { throw new Error("Not enough arguments"); }
