@@ -67,6 +67,23 @@ describe("EventTarget", function() {
 			expect(LOG).toEqual([]);
 		});
 
+		it("should add and remove native event listener", function() {
+			add(a, loga);
+			remove(a, loga);
+
+			a.__events = { /* insert fake listener; shall not be called because native listener must be detached */
+				click: [
+					{
+						listener: loga,
+						useCapture: false
+					}
+				]
+			};
+
+			a.click();
+			expect(LOG).toEqual([]);
+		});
+
 		it("should ignore nonexistant listener", function() {
 			add(a, loga);
 			remove(a, logb);
@@ -412,6 +429,18 @@ describe("EventTarget", function() {
 
 			click(a, true);
 			expect(LOG).toEqual(["a", "b"]);
+		});
+	});
+
+	describe("Load event", function() {
+		it("should add image load listener", function(done) {
+			var img = document.createElement("img");
+
+			img.addEventListener("load", function(e) {
+				expect(e.target).toBe(img);
+				done();
+			});
+			img.src = "js.png";
 		});
 	});
 });
