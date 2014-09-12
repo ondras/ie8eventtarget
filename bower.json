@@ -1,0 +1,23 @@
+{
+  "name": "eventtarget",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ondras/ie8eventtarget",
+  "authors": [
+    "Ondrej Zara <ondrej.zara@gmail.com> (http://ondras.zarovi.cz/)"
+  ],
+  "description": "Event-related polyfills (EventTarget, MouseEvent, CustomEvent, DOMContentLoaded)",
+  "main": "eventtarget.js",
+  "keywords": [
+    "event",
+    "target",
+    "polyfill",
+    "ie8"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "bind.js",
+    "index.html",
+    "tests"
+  ]
+}

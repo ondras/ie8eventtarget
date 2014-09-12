@@ -1,5 +1,5 @@
 /** EventTarget support */
-;(function() {
+(function() {
 	if (document.addEventListener || !window.Element || !window.Event) { return; }
 
 	var expando = "__events"; /* own property for storing listeners */

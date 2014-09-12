@@ -1,4 +1,4 @@
-;(function() {
+(function() {
 	var supported = true;
 	/*@cc_on if (@_jscript_version <= 8) { supported = false; } @*/
 	if (supported) { return; }
